@@ -1,70 +1,70 @@
 #!/bin/sh
-IFBACKUP='ifBackup';
-CONFDIR='/etc/ifBackup';
-CONFFILE='ifBackup.conf';
+ifBackup='ifBackup';
+confDir='/etc/ifBackup';
+confFile='ifBackup.conf';
 
-if [[ ! -f $CONFDIR/$CONFFILE ]]; then
+if [[ ! -f $confDir/$confFile ]]; then
     exit
 else
-    source $CONFDIR/$CONFFILE;
+    source $confDir/$confFile;
 fi
 
-CONFSITES="$CONFDIR/$IF_OPTCONF";
-CURRENTDAY=$(date +%Y-%m-%d);
-BACKUPDEST=$IF_BACKUP_DIR/$CURRENTDAY;
-TMPDIR=$IF_TMP_DIR/$IFBACKUP;
+confSites="$confDir/$if_optconf";
+currentDay=$(date +%Y-%m-%d);
+backupDest=$if_backup_dir/$currentDay;
+tmpDir=$if_tmp_dir/$ifBackup;
 
-# OPTIONS INIT
-if [[ -n $IF_OPTIONS ]]; then
-    OPTIONS="-$IF_OPTIONS";
+# options INIT
+if [[ -n $if_options ]]; then
+    options="-$if_options";
 fi
 
-# STATS INIT
-if [[ $IF_STATS == 1 ]]; then
-    STATS="--stats";
+# stats INIT
+if [[ $IF_stats == 1 ]]; then
+    stats="--stats";
 fi
 
 # INCREMENTAL DIRS INIT
-LASTDIR=$(ls -r $IF_BACKUP_DIR/$LASTDIR |head -1);
-if [[ -d $IF_BACKUP_DIR/$LASTDIR ]]; then
-    LINKDEST="--link-dest=$IF_BACKUP_DIR/$LASTDIR";
+lastDir=$(ls -r $if_backup_dir/$lastDir |head -1);
+if [[ -d $if_backup_dir/$lastDir ]]; then
+    linkDest="--link-dest=$if_backup_dir/$lastDir";
 fi
 
-mkdir $IF_BACKUP_DIR/$CURRENTDAY;
-mkdir $TMPDIR;
+mkdir $if_backup_dir/$currentDay;
+mkdir $tmpDir;
 
 function generateScripts {
-    for i in `ls $CONFSITES/*.conf`; do
+    for i in `ls $confSites/*.conf`; do
         if [[ -f $i ]]; then
             source $i;
-            SCRIPTNAME=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c10;echo);
-            SCRIPTLOCATION=$TMPDIR/$SCRIPTNAME;
-            for CURRENTPATH in ${BACKUP_DIRS[@]}; do
-                if [[ -n $TOBACKUP ]]; then
-                    PREVLINE="$TOBACKUP;";
+            scriptName=$(< /dev/urandom tr -dc _A-Z-a-z-0-9 | head -c10;echo);
+            scriptLocation=$tmpDir/$scriptName;
+            for currentPath in ${backup_dirs[@]}; do
+                if [[ -n $toBackup ]]; then
+                    prevLine="$toBackup;";
                 fi
-                TOBACKUP="$PREVLINE rsync $OPTIONS $STATS $LINKDEST $MOUNT_POINT/$CURRENTPATH $BACKUPDEST/$BACKUP_NAME";
+                toBackup="$prevLine rsync $options $stats $linkDest $mount_point/$currentPath $backupDest/$backup_name";
             done
-            cat <<EOS >> $SCRIPTLOCATION
-mount $MOUNT_POINT && $TOBACKUP  || echo fail;
-umount $MOUNT_POINT;
+            cat <<EOS >> $scriptLocation
+mount $mount_point && $toBackup  || echo fail;
+umount $mount_point;
 EOS
-            chmod +x $SCRIPTLOCATION;
-            SCREENS=("${SCREENS[@]}" "screen -dmS $BACKUP_NAME-$CURRENTDAY $SCRIPTLOCATION;");
+            chmod +x $scriptLocation;
+            screens=("${screens[@]}" "screen -dmS $backup_name-$currentDay $scriptLocation;");
             #CLEAN VARS
-            unset SCRIPTNAME;
-            unset BACKUP_NAME;
-            unset MOUNT_POINT;
-            unset BACKUP_DIRS;
-            unset PREVLINE;
-            unset TOBACKUP;
+            unset scriptName;
+            unset backup_name;
+            unset mount_point;
+            unset backup_dirs;
+            unset prevLine;
+            unset toBackup;
         fi
     done
 }
 
 generateScripts;
 
-for TOEXEC in "${SCREENS[@]}"; do
-    $TOEXEC;
+for toExec in "${screens[@]}"; do
+    $toExec;
     #sleep 1;
 done;
