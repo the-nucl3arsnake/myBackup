@@ -50,7 +50,7 @@ mount $MOUNT_POINT && $TOBACKUP  || echo fail;
 umount $MOUNT_POINT;
 EOS
             chmod +x $SCRIPTLOCATION;
-            SCREENS=("${SCREENS[@]}" "screen -dmS $BACKUP_NAME-$(date +%d%m%y) $SCRIPTLOCATION;");
+            SCREENS=("${SCREENS[@]}" "screen -dmS $BACKUP_NAME-$CURRENTDAY $SCRIPTLOCATION;");
             #CLEAN VARS
             unset SCRIPTNAME;
             unset BACKUP_NAME;
