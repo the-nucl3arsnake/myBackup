@@ -65,6 +65,6 @@ EOS
 generateScripts;
 
 for TOEXEC in "${SCREENS[@]}"; do
-    echo $TOEXEC;
+    $TOEXEC;
     #sleep 1;
 done;
